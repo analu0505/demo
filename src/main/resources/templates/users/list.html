@@ -1,0 +1,27 @@
+<p><a href="/users/new">➕ Nuevo usuario</a></p>
+
+<table border="1" cellpadding="6">
+  <thead>
+    <tr>
+      <th>ID</th>
+      <th>Email</th>
+      <th>Nombre</th>
+      <th>Rol</th>
+      <th>Acciones</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr th:each="u : ${users}">
+      <td th:text="${u.id}">1</td>
+      <td th:text="${u.email}">mail</td>
+      <td th:text="${u.fullName}">Nombre</td>
+      <td th:text="${u.role}">ADMIN</td>
+      <td>
+        <a th:href="@{'/users/' + ${u.id} + '/edit'}">Editar</a>
+        <form th:action="@{'/users/' + ${u.id} + '/delete'}" method="post" style="display:inline">
+          <button type="submit" onclick="return confirm('¿Eliminar usuario?')">Eliminar</button>
+        </form>
+      </td>
+    </tr>
+  </tbody>
+</table>

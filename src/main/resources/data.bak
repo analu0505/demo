@@ -1,0 +1,7 @@
+-- USUARIO ADMIN por defecto
+INSERT INTO users (email, password_hash, full_name, role, enabled, created_at, updated_at)
+VALUES ('admin@demo.com','admin123','Administrador','ADMIN', TRUE, CURRENT_TIMESTAMP, CURRENT_TIMESTAMP);
+
+INSERT INTO messages (title, content, owner_id, created_at, updated_at)
+VALUES ('Bienvenido','Este es tu primer mensaje de prueba.', 1, CURRENT_TIMESTAMP, CURRENT_TIMESTAMP);
+

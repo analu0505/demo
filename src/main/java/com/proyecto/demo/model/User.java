@@ -1,47 +1,58 @@
 package com.proyecto.demo.model;
 
 import jakarta.persistence.*;
-import lombok.Data;
 import java.time.LocalDateTime;
-import com.proyecto.demo.model.Role;
 
 @Entity
-@Table(name = "users")
-@Data // Genera getters, setters, etc. (Requiere dependencia Lombok)
+@Table(name = "users", uniqueConstraints = @UniqueConstraint(columnNames = "email"))
 public class User {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    // email (único)
-    @Column(unique = true, nullable = false)
+    @Column(nullable=false, length=150)
     private String email;
 
-    // passwordHash
-    @Column(nullable = false)
-    private String passwordHash;
+    @Column(nullable=false)
+    private String password;              // <- usamos "password"
 
-    // fullName
-    private String fullName;
+    @Column(name = "full_name")
+    private String fullName;              // <- usamos "fullName"
 
-    // role (ADMIN|USER)
     @Enumerated(EnumType.STRING)
-    @Column(nullable = false)
-    private Role role = Role.USER;
+    @Column(nullable=false)
+    private Role role;                    // <- usamos "role" (no "rol")
 
-    // enabled (para listar/bloquear)
+    @Column(nullable=false)
     private boolean enabled = true;
 
-    // createdAt
-    private LocalDateTime createdAt = LocalDateTime.now();
-    
-    // Opcional: updatedAt
+    private LocalDateTime createdAt;
     private LocalDateTime updatedAt;
 
-    // Se ejecuta antes de actualizar la entidad
-    @PreUpdate
-    protected void onUpdate() {
-        this.updatedAt = LocalDateTime.now();
-    }
+    // ===== getters & setters =====
+    public Long getId() { return id; }
+    public void setId(Long id) { this.id = id; }
+
+    public String getEmail() { return email; }
+    public void setEmail(String email) { this.email = email; }
+
+    public String getPassword() { return password; }
+    public void setPassword(String password) { this.password = password; }
+
+    public String getFullName() { return fullName; }
+    public void setFullName(String fullName) { this.fullName = fullName; }
+
+    public Role getRole() { return role; }
+    public void setRole(Role role) { this.role = role; }
+
+    public boolean isEnabled() { return enabled; }
+    public void setEnabled(boolean enabled) { this.enabled = enabled; }
+
+    public LocalDateTime getCreatedAt() { return createdAt; }
+    public void setCreatedAt(LocalDateTime createdAt) { this.createdAt = createdAt; }
+
+    public LocalDateTime getUpdatedAt() { return updatedAt; }
+    public void setUpdatedAt(LocalDateTime updatedAt) { this.updatedAt = updatedAt; }
 }
+

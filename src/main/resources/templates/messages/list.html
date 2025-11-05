@@ -1,0 +1,32 @@
+<th:block th:replace="layout :: content">
+  <div class="d-flex justify-content-between align-items-center mb-3">
+    <h1>Mensajes</h1>
+    <a class="btn btn-primary" th:href="@{/messages/new}">Nuevo mensaje</a>
+  </div>
+
+  <table class="table table-bordered table-striped">
+    <thead>
+      <tr>
+        <th>ID</th>
+        <th>Título</th>
+        <th>Usuario</th>
+        <th>Creado</th>
+        <th>Acciones</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr th:each="m : ${mensajes}">
+        <td th:text="${m.id}"></td>
+        <td th:text="${m.titulo}"></td>
+        <td th:text="${m.usuario?.nombreCompleto}"></td>
+        <td th:text="${#temporals.format(m.fechaCreacion, 'yyyy-MM-dd HH:mm')}"></td>
+        <td>
+          <a class="btn btn-sm btn-warning" th:href="@{|/messages/${m.id}/edit|}">Editar</a>
+          <form th:action="@{|/messages/${m.id}/delete|}" method="post" class="d-inline">
+            <button class="btn btn-sm btn-danger" type="submit">Eliminar</button>
+          </form>
+        </td>
+      </tr>
+    </tbody>
+  </table>
+</th:block>

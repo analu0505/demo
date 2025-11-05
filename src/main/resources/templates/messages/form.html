@@ -1,0 +1,31 @@
+<th:block th:replace="layout :: content">
+  <h2 th:text="${message.id} != null ? 'Editar Mensaje' : 'Nuevo Mensaje'"></h2>
+
+  <form th:action="${message.id} != null ? @{'/messages/' + ${message.id}} : @{/messages}"
+        th:object="${message}" method="post" class="row g-3">
+
+    <div class="col-md-8">
+      <label class="form-label">Título</label>
+      <input type="text" th:field="*{titulo}" class="form-control"/>
+      <small class="text-danger" th:errors="*{titulo}"></small>
+    </div>
+
+    <div class="col-md-4">
+      <label class="form-label">Usuario</label>
+      <select class="form-select" name="usuarioId" th:value="${usuarioId}">
+        <option th:each="u : ${usuarios}" th:value="${u.id}" th:text="${u.nombreCompleto}"></option>
+      </select>
+    </div>
+
+    <div class="col-12">
+      <label class="form-label">Contenido</label>
+      <textarea class="form-control" th:field="*{contenido}" rows="4"></textarea>
+      <small class="text-danger" th:errors="*{contenido}"></small>
+    </div>
+
+    <div class="col-12">
+      <button class="btn btn-success" type="submit">Guardar</button>
+      <a th:href="@{/messages}" class="btn btn-secondary">Cancelar</a>
+    </div>
+  </form>
+</th:block>

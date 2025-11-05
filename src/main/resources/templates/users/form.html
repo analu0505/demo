@@ -1,0 +1,47 @@
+<!DOCTYPE html>
+<html lang="es" xmlns:th="http://www.thymeleaf.org">
+<head>
+  <meta charset="UTF-8">
+  <title th:text="${title}">Usuario</title>
+</head>
+<body>
+<h1 th:text="${title}">Usuario</h1>
+
+<form th:action="${user.id} != null ? @{/users/{id}(id=${user.id})} : @{/users}"
+      th:object="${user}" method="post">
+
+  <div>
+    <label>Email</label><br>
+    <input type="email" th:field="*{email}" required />
+  </div>
+
+  <div>
+    <label>Nombre completo</label><br>
+    <input type="text" th:field="*{fullName}" required />
+  </div>
+
+  <div>
+    <label>Contraseña</label><br>
+    <input type="password" th:field="*{password}" required />
+  </div>
+
+  <div>
+    <label>Rol</label><br>
+    <select th:field="*{role}" required>
+      <option th:value="ADMIN">ADMIN</option>
+      <option th:value="USER">USER</option>
+    </select>
+  </div>
+
+  <div>
+    <label>Habilitado</label>
+    <input type="checkbox" th:field="*{enabled}" />
+  </div>
+
+  <br>
+  <button type="submit">Guardar</button>
+  <a href="/users">Cancelar</a>
+</form>
+
+</body>
+</html>
