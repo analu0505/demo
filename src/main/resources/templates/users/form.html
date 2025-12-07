@@ -13,6 +13,8 @@
   <div>
     <label>Email</label><br>
     <input type="email" th:field="*{email}" required />
+    <!-- Mensaje de error si el email está duplicado -->
+    <div th:if="${emailError}" style="color:red" th:text="${emailError}"></div>
   </div>
 
   <div>

@@ -1,0 +1,31 @@
+<!DOCTYPE html>
+<html lang="es" xmlns:th="http://www.thymeleaf.org">
+<head>
+  <meta charset="UTF-8">
+  <title th:text="${item.id} != null ? 'Editar Item' : 'Nuevo Item'">Item</title>
+</head>
+<body>
+
+<h1 th:text="${item.id} != null ? 'Editar Item' : 'Nuevo Item'">Item</h1>
+
+<form th:action="${item.id} != null ? @{'/vault/' + ${item.id}} : @{/vault}"
+      th:object="${item}" method="post">
+
+  <div>
+    <label>Título</label><br>
+    <input type="text" th:field="*{titulo}" required>
+  </div>
+
+  <div>
+    <label>Contenido (texto plano)</label><br>
+    <textarea th:field="*{contenidoPlano}" rows="4"></textarea>
+    <p><small>Si deja vacío al editar, se mantiene el contenido actual.</small></p>
+  </div>
+
+  <br>
+  <button type="submit">Guardar</button>
+  <a th:href="@{/vault}">Cancelar</a>
+</form>
+
+</body>
+</html>

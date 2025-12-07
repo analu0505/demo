@@ -1,0 +1,18 @@
+<!DOCTYPE html>
+<html lang="es" xmlns:th="http://www.thymeleaf.org">
+<head>
+  <meta charset="UTF-8">
+  <title th:text="${titulo}">Ver Item</title>
+</head>
+<body>
+
+<h1 th:text="${titulo}">Título</h1>
+
+<pre th:text="${contenido}">Contenido descifrado</pre>
+
+<p>
+  <a th:href="@{/vault}">Volver</a>
+</p>
+
+</body>
+</html>

@@ -1,61 +1,541 @@
-# SafeBox – Avance 1
+SafeBox – Avance 1
 
-Aplicación Spring Boot para gestionar **Usuarios** y **Mensajes** con relación 1:N.
-Incluye CRUD completo, validaciones con Bean Validation, persistencia en H2 y vistas Thymeleaf.
+Aplicación desarrollada en Spring Boot 3, con arquitectura MVC, persistencia con Spring Data JPA, base de datos H2, validaciones con Bean Validation y vistas con Thymeleaf.
 
-## Requisitos
-- Java 21
-- Maven 3.9+
-- VS Code 
+Este avance implementa la base funcional del sistema, incluyendo los modelos, repositorios, servicios y controladores necesarios para realizar operaciones CRUD sobre Usuarios y Mensajes, cumpliendo los objetivos técnicos solicitados por el docente.
 
-## Ejecutar
-```bash
-ejecuta DemoApplication
-La app levanta en: http://localhost:8080
+ Objetivo General
 
-Endpoints
+Construir la base del sistema SafeBox implementando las entidades, servicios, repositorios y controladores que permiten realizar operaciones CRUD sobre Usuarios y Mensajes, aplicando principios de POO, relaciones entre entidades y arquitectura MVC dentro del ecosistema Spring Boot.
+
+ Objetivos Específicos
+
+Diseñar entidades aplicando principios de Programación Orientada a Objetos (POO).
+
+Implementar operaciones CRUD utilizando Spring Data JPA.
+
+Validar datos mediante Jakarta Bean Validation.
+
+Configurar una base de datos H2 en memoria y demostrar persistencia.
+
+Aplicar la arquitectura Modelo–Vista–Controlador (MVC) usando Spring Boot + Thymeleaf.
+
+Preparar el código para ser defendido técnicamente en la exposición oral.
+
+ Estructura del Proyecto
+src/main/java/com/proyecto/demo
+│
+├── model
+│   ├── User.java
+│   └── Message.java
+│
+├── repository
+│   ├── UserRepository.java
+│   └── MessageRepository.java
+│
+├── service
+│   ├── UserService.java
+│   └── MessageService.java
+│
+├── web
+│   ├── UserPageController.java
+│   └── MessagePageController.java
+│
+└── DemoApplication.java
+
+ Modelado de Entidades
+ Entidad User
+
+Campos mínimos requeridos:
+
+id
+
+fullName
+
+email (único)
+
+password
+
+role (ADMIN / USER)
+
+enabled
+
+createdAt
+
+updatedAt
+
+Validaciones:
+
+@Email (formato válido)
+
+uniqueConstraint en la tabla
+
+Validación manual para evitar duplicados al crear/editar
+
+Relaciones:
+
+Un usuario puede tener muchos mensajes (@OneToMany opcional desde la perspectiva del usuario).
+
+ Entidad Message
+
+Campos mínimos requeridos:
+
+id
+
+titulo
+
+contenido
+
+fechaCreacion
+
+fechaActualizacion
+
+usuario (relación ManyToOne)
+
+Relación principal:
+
+@ManyToOne(optional = false)
+@JoinColumn(name = "usuario_id")
+private User usuario;
+
+
+Fechas automáticas:
+
+@PrePersist
+@PreUpdate
+
+
+Validaciones:
+
+@NotEmpty en título y contenido
+
+ Persistencia – Spring Data JPA
+UserRepository
+
+findByEmail(String email)
+
+existsByEmail(String email)
+
+MessageRepository
+
+findAllByUsuarioId(Long usuarioId)
+
+Los repositorios permiten CRUD sin escribir SQL manual.
+
+ Servicios (Capa de lógica)
+✔ UserService
+
+Maneja creación, edición, eliminación y búsqueda de usuarios.
+
+Contiene validaciones para evitar email duplicado en:
+
+creación
+
+edición
+
+✔ MessageService
+
+CRUD completo de mensajes.
+
+Asignación de mensaje → usuario.
+
+Manejo de datos con integridad (usuario debe existir).
+
+ Controladores (MVC)
+
+Los controladores Thymeleaf manejan las rutas para la UI:
+
+✔ UserPageController
+
+/users
+
+/users/new
+
+/users/{id}/edit
+
+Guarda validando correos duplicados.
+
+✔ MessagePageController
+
+/messages
+
+/messages/new
+
+/messages/{id}/edit
+
+Asocia cada mensaje a un usuario.
+
+Ambos módulos muestran formularios y tablas HTML.
+
+ Base de Datos H2
+
+Configuración automática mediante Starter.
+
+Consola disponible en:
+
+http://localhost:8080/h2-console
+
+
+Parámetros:
+
+JDBC URL: jdbc:h2:mem:testdb
+
+User: sa
+
+Password: (vacía)
+
+ Prueba Funcional (Cómo ejecutar)
+
+Abrir el proyecto en VS Code.
+
+Ejecutar:
+presionar Run en DemoApplication.java
+3. Navegar a:
+
 Usuarios
 
-GET /users (lista)
-
-GET /users/new (form crear)
-
-POST /users (guardar)
-
-GET /users/{id}/edit (form editar)
-
-POST /users/{id} (actualizar)
-
-POST /users/{id}/delete (eliminar)
+http://localhost:8080/users
 
 Mensajes
 
-GET /messages · GET /messages/new · POST /messages
+http://localhost:8080/messages
 
-GET /messages/{id}/edit · POST /messages/{id} · POST /messages/{id}/delete
+Probar CRUD completo:
 
-H2 Console: /h2-console
-JDBC URL: jdbc:h2:mem:testdb, User: sa
+Crear, listar, editar, eliminar usuarios.
 
-Entidades
-User: id, fullName, email (único), password, role (ADMIN/USER), enabled, createdAt, updatedAt
+Crear, listar, editar, eliminar mensajes.
 
-Message: id, titulo, contenido, fechaCreacion, fechaActualizacion, usuario (ManyToOne User)
+Validación de email duplicado funcionando.
 
-Arquitectura (MVC)
-model (entidades JPA)
+Asociar mensajes a usuarios desde un <select>.
 
-repository (Spring Data JPA)
 
-service (reglas y validaciones de dominio)
 
-web/controller (Thymeleaf)
+SafeBox – Avance 2
 
-templates (vistas)
+Aplicación desarrollada en Spring Boot 3, con arquitectura MVC, persistencia con Spring Data JPA, seguridad con Spring Security, cifrado con AES-GCM + PBKDF2 y base de datos H2 en memoria.
 
-Validaciones
-@Email y unique en User.email
+El sistema implementa:
 
-@NotBlank en campos obligatorios
+Módulo de Usuarios (CRUD completo, roles, validaciones, passwords con BCrypt).
 
-Manejo de errores con @Valid + BindingResult
+Módulo de Mensajes (CRUD completo asociado a usuarios).
+
+Módulo de VaultItems (bóveda cifrada por usuario).
+
+Autenticación y autorización con Spring Security.
+
+Cifrado de contenido sensible con AES-GCM.
+
+Auditoría mínima de logins y operaciones sobre VaultItems.
+
+ Objetivo general
+
+Construir una versión segura de SafeBox que incluya autenticación, autorización por roles, cifrado de datos sensibles y auditoría mínima, manteniendo los CRUDs de Usuarios y Mensajes funcionales y estables.
+
+Funcionalidad implementada
+1. Módulo de Usuarios
+
+CRUD completo:
+
+Crear usuario
+
+Listar usuarios
+
+Editar usuario
+
+Eliminar usuario
+
+Validaciones:
+
+Email único (uniqueConstraint en BD + verificación en servicio).
+
+Email en formato válido (@Email).
+
+Nombre y contraseña no vacíos (@NotEmpty).
+
+Campos:
+
+id, fullName, email, password, role (ADMIN / USER), enabled, createdAt, updatedAt.
+
+Seguridad:
+
+Contraseñas almacenadas con BCryptPasswordEncoder.
+
+Solo ADMIN puede gestionar usuarios (/users/**).
+
+2. Módulo de Mensajes
+
+CRUD completo:
+
+Crear mensaje
+
+Listar mensajes
+
+Editar mensaje
+
+Eliminar mensaje
+
+Relación:
+
+Cada mensaje está asociado a un User (@ManyToOne usuario).
+
+Campos:
+
+id, titulo, contenido, fechaCreacion, fechaActualizacion, usuario.
+
+Validaciones:
+
+@NotEmpty en titulo y contenido.
+
+Los mensajes quedan como módulo funcional de práctica de CRUD y relaciones, pero sin cifrado (el cifrado fuerte se aplica en VaultItems).
+
+3. Módulo de VaultItems (Bóveda cifrada)
+
+Este es el corazón del avance 2.
+
+Entidad VaultItem:
+
+id
+
+titulo
+
+contentEnc → contenido cifrado (Base64).
+
+nonce → nonce usado en AES-GCM (Base64).
+
+kdfSalt → salt usado en PBKDF2 (Base64).
+
+owner → usuario dueño (@ManyToOne User).
+
+contenidoPlano → campo @Transient solo para el formulario (no se guarda en BD).
+
+Restricciones de acceso:
+
+Cada usuario solo ve sus propios VaultItems.
+
+**ADMIN no puede acceder a /vault/** ni ver contenido descifrado.
+
+Operaciones:
+
+Crear, listar, editar y eliminar VaultItems.
+
+Ver contenido descifrado solo por el dueño (/vault/{id}/view).
+
+ Seguridad – Spring Security
+
+Dependencia: spring-boot-starter-security.
+
+Clase de configuración: SecurityConfig con SecurityFilterChain.
+
+Autenticación:
+
+CustomUserDetailsService carga usuarios desde la base de datos por email (UserRepository).
+
+Passwords validadas con BCryptPasswordEncoder.
+
+Login:
+
+Ruta de login personalizada: GET /login.
+
+Procesamiento de login: POST /login.
+
+Redirección tras login exitoso: /vault (bóveda del usuario).
+
+Manejo de error: /login?error=true.
+
+Logout:
+
+Ruta: POST /logout (o enlace con th:href="@{/logout}" según configuración).
+
+Redirección: /login?logout=true.
+
+Reglas de autorización principales:
+
+/login, /h2-console/** → permitAll().
+
+/users/** → solo ROLE_ADMIN.
+
+/vault/** → solo ROLE_USER.
+
+/messages/** → ROLE_ADMIN o ROLE_USER.
+
+Resto de rutas → authenticated().
+
+Además:
+
+Usuarios deshabilitados (enabled = false) no pueden iniciar sesión (se respeta isEnabled() de Spring Security).
+
+H2 Console permitida solo durante desarrollo (frameOptions(sameOrigin)).
+
+ Cifrado AES-GCM + PBKDF2
+
+Implementado en EncryptionService:
+
+Algoritmo: AES/GCM/NoPadding.
+
+Longitud de clave: 256 bits.
+
+Nonce: 12 bytes (96 bits) único por item (SecureRandom).
+
+KDF: PBKDF2WithHmacSHA256 con:
+
+Iteraciones: 65 536.
+
+Salt: 16 bytes por item.
+
+Master key:
+
+Leída de variable de entorno SAFEBOX_MASTER_KEY.
+
+O, en desarrollo, desde application.properties (safebox.master-key).
+
+Almacenamiento:
+
+contentEnc, nonce, kdfSalt se guardan en Base64.
+
+Nunca se guarda texto plano en la base de datos (contenidoPlano es @Transient).
+
+Flujo de cifrado:
+
+El usuario ingresa contenidoPlano en el formulario.
+
+El servicio deriva una clave con PBKDF2 (masterKey + kdfSalt).
+
+Se genera un nonce único.
+
+Se cifra con AES-GCM → contentEnc.
+
+Se guardan en BD: contentEnc, nonce, kdfSalt (todos en Base64) y el owner.
+
+contenidoPlano se pone a null antes de persistir.
+
+Flujo de descifrado:
+
+Se obtiene el VaultItem de BD.
+
+Se decodifican contentEnc, nonce, kdfSalt desde Base64.
+
+Se deriva la misma clave con PBKDF2.
+
+Se descifra con AES-GCM.
+
+Se devuelve el texto plano SOLO al dueño del item.
+
+ Auditoría mínima
+
+Entidad: AuditLog
+Campos:
+
+id
+
+userId
+
+action
+
+details
+
+timestamp
+
+Servicio: AuditLogService con método:
+
+log(userId, action, details)
+
+
+Eventos registrados:
+
+Login exitoso → LOGIN_SUCCESS
+
+Login fallido → LOGIN_FAILED
+
+Creación de VaultItem → VAULT_CREATE
+
+Edición de VaultItem → VAULT_UPDATE
+
+Eliminación de VaultItem → VAULT_DELETE
+
+Descifrado de contenido → VAULT_DECRYPT
+
+Implementación técnica:
+
+Listeners de Spring Security:
+
+LoginSuccessListener escucha AuthenticationSuccessEvent.
+
+LoginFailureListener escucha AbstractAuthenticationFailureEvent.
+
+En VaultItemService, cada operación de CRUD y descifrado llama a AuditLogService.
+
+Ver auditoría durante la defensa:
+
+SELECT * FROM AUDIT_LOGS ORDER BY TIMESTAMP DESC;
+
+
+en H2 Console.
+
+ Base de datos H2
+
+BD en memoria.
+
+H2 Console:
+http://localhost:8080/h2-console
+
+JDBC URL: jdbc:h2:mem:testdb
+
+User: sa
+
+Password: (vacío)
+
+ Cómo ejecutar el sistema
+Requisitos
+
+Java 21
+
+Maven 3.9+
+
+IDE (VS Code, IntelliJ, etc.)
+
+Ejecución
+mvn spring-boot:run
+
+
+o ejecutar DemoApplication desde el IDE.
+
+Master Key (OBLIGATORIO)
+
+En desarrollo se puede usar:
+
+Variable de entorno:
+
+SET SAFEBOX_MASTER_KEY=ClaveSuperSecreta123   # Windows
+export SAFEBOX_MASTER_KEY=ClaveSuperSecreta123 # Linux/Mac
+
+
+o en application.properties:
+
+safebox.master-key=ClaveSuperSecreta123
+
+URLs útiles
+
+Login: http://localhost:8080/login
+
+Usuarios (ADMIN): http://localhost:8080/users
+
+Mensajes: http://localhost:8080/messages
+
+Vault (USER): http://localhost:8080/vault
+
+H2 Console: http://localhost:8080/h2-console
+
+Usuarios de prueba (seed):
+
+ADMIN:
+
+admin@demo.com / admin123
+
+USER:
+
+user@demo.com / user123
+
+Passwords generadas con BCrypt en DataSeeder.

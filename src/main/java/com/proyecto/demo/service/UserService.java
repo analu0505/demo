@@ -36,8 +36,15 @@ public class UserService {
         userRepository.deleteById(id);
     }
 
-    // Utilidad para validar duplicados por email
+    // Utilidad para validar duplicados por email (crear)
     public boolean emailExists(String email) {
-        return userRepository.findByEmail(email).isPresent();
+        return userRepository.existsByEmail(email);
+    }
+
+    // Utilidad para validar duplicados por email (editar)
+    public boolean emailExistsForOtherUser(String email, Long currentUserId) {
+        return userRepository.findByEmail(email)
+                .map(u -> !u.getId().equals(currentUserId))
+                .orElse(false);
     }
 }

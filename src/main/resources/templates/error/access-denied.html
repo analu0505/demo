@@ -1,0 +1,21 @@
+<!DOCTYPE html>
+<html lang="es" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <title th:text="${title}">Acceso denegado</title>
+</head>
+<body>
+
+<h1>Acceso denegado</h1>
+
+<p>No tienes permisos para acceder a esta sección.</p>
+
+<ul>
+    <li><a th:href="@{/messages}">Ir a mensajes</a></li>
+    <li><a th:href="@{/vault}">Ir a mi bóveda</a></li>
+    <li><a th:href="@{/users}">Gestión de usuarios (solo ADMIN)</a></li>
+    <li><a th:href="@{/logout}">Cerrar sesión</a></li>
+</ul>
+
+</body>
+</html>

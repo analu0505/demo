@@ -2,6 +2,7 @@ package com.proyecto.demo.web;
 
 import com.proyecto.demo.model.User;
 import com.proyecto.demo.service.UserService;
+import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.*;
@@ -12,12 +13,15 @@ import java.time.LocalDateTime;
 public class UserPageController {
 
     private final UserService userService;
+    private final PasswordEncoder passwordEncoder;
 
-    public UserPageController(UserService userService) {
+    public UserPageController(UserService userService,
+                              PasswordEncoder passwordEncoder) {
         this.userService = userService;
+        this.passwordEncoder = passwordEncoder;
     }
 
-    // LISTA
+    // LISTA (solo ADMIN, SecurityConfig lo protege)
     @GetMapping("/users")
     public String list(Model model) {
         model.addAttribute("users", userService.findAll());
@@ -36,10 +40,23 @@ public class UserPageController {
 
     // GUARDAR NUEVO
     @PostMapping("/users")
-    public String create(@ModelAttribute User user) {
+    public String create(@ModelAttribute User user, Model model) {
+
+        // Validar email duplicado
+        if (userService.emailExists(user.getEmail())) {
+            model.addAttribute("user", user);
+            model.addAttribute("title", "Nuevo usuario");
+            model.addAttribute("emailError", "El email ya está registrado");
+            return "users/form";
+        }
+
         LocalDateTime now = LocalDateTime.now();
         if (user.getCreatedAt() == null) user.setCreatedAt(now);
         user.setUpdatedAt(now);
+
+        // cifrar password
+        user.setPassword(passwordEncoder.encode(user.getPassword()));
+
         userService.save(user);
         return "redirect:/users";
     }
@@ -49,6 +66,8 @@ public class UserPageController {
     public String editForm(@PathVariable Long id, Model model) {
         User u = userService.findById(id)
                 .orElseThrow(() -> new IllegalArgumentException("Usuario no encontrado: " + id));
+        // No mostrar el hash en el form
+        u.setPassword("");
         model.addAttribute("user", u);
         model.addAttribute("title", "Editar usuario");
         return "users/form";
@@ -56,16 +75,32 @@ public class UserPageController {
 
     // ACTUALIZAR
     @PostMapping("/users/{id}")
-    public String update(@PathVariable Long id, @ModelAttribute User user) {
+    public String update(@PathVariable Long id,
+                         @ModelAttribute User user,
+                         Model model) {
+
         User existente = userService.findById(id)
                 .orElseThrow(() -> new IllegalArgumentException("Usuario no encontrado: " + id));
 
+        // Validar email duplicado contra otros usuarios
+        if (userService.emailExistsForOtherUser(user.getEmail(), id)) {
+            user.setId(id);
+            model.addAttribute("user", user);
+            model.addAttribute("title", "Editar usuario");
+            model.addAttribute("emailError", "El email ya está registrado por otro usuario");
+            return "users/form";
+        }
+
         existente.setEmail(user.getEmail());
         existente.setFullName(user.getFullName());
-        existente.setPassword(user.getPassword());
         existente.setRole(user.getRole());
         existente.setEnabled(user.isEnabled());
         existente.setUpdatedAt(LocalDateTime.now());
+
+        // si el campo password viene vacío, no se cambia
+        if (user.getPassword() != null && !user.getPassword().isBlank()) {
+            existente.setPassword(passwordEncoder.encode(user.getPassword()));
+        }
 
         userService.save(existente);
         return "redirect:/users";

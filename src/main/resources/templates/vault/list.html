@@ -1,0 +1,41 @@
+<!DOCTYPE html>
+<html lang="es" xmlns:th="http://www.thymeleaf.org">
+<head>
+  <meta charset="UTF-8">
+  <title>Mis Vault Items</title>
+</head>
+<body>
+
+<h1>Mis Vault Items</h1>
+
+<p>
+  <a th:href="@{/vault/new}">➕ Nuevo item</a> |
+  <a th:href="@{/messages}">Mensajes</a> |
+  <a th:href="@{/logout}">Cerrar sesión</a>
+</p>
+
+<table border="1" cellpadding="6">
+  <thead>
+    <tr>
+      <th>ID</th>
+      <th>Título</th>
+      <th>Acciones</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr th:each="i : ${items}">
+      <td th:text="${i.id}">1</td>
+      <td th:text="${i.titulo}">Título</td>
+      <td>
+        <a th:href="@{|/vault/${i.id}/view|}">Ver</a> |
+        <a th:href="@{|/vault/${i.id}/edit|}">Editar</a>
+        <form th:action="@{|/vault/${i.id}/delete|}" method="post" style="display:inline">
+          <button type="submit" onclick="return confirm('¿Eliminar item?')">Eliminar</button>
+        </form>
+      </td>
+    </tr>
+  </tbody>
+</table>
+
+</body>
+</html>

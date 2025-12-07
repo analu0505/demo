@@ -1,31 +1,44 @@
-<th:block th:replace="layout :: content">
-  <h2 th:text="${message.id} != null ? 'Editar Mensaje' : 'Nuevo Mensaje'"></h2>
+<!DOCTYPE html>
+<html lang="es" xmlns:th="http://www.thymeleaf.org">
+<head>
+  <meta charset="UTF-8">
+  <title th:text="${message.id} != null ? 'Editar Mensaje' : 'Nuevo Mensaje'">Mensaje</title>
+</head>
+<body>
 
-  <form th:action="${message.id} != null ? @{'/messages/' + ${message.id}} : @{/messages}"
-        th:object="${message}" method="post" class="row g-3">
+<h1 th:text="${message.id} != null ? 'Editar Mensaje' : 'Nuevo Mensaje'">Mensaje</h1>
 
-    <div class="col-md-8">
-      <label class="form-label">Título</label>
-      <input type="text" th:field="*{titulo}" class="form-control"/>
-      <small class="text-danger" th:errors="*{titulo}"></small>
-    </div>
+<form th:action="${message.id} != null ? @{'/messages/' + ${message.id}} : @{/messages}"
+      th:object="${message}" method="post">
 
-    <div class="col-md-4">
-      <label class="form-label">Usuario</label>
-      <select class="form-select" name="usuarioId" th:value="${usuarioId}">
-        <option th:each="u : ${usuarios}" th:value="${u.id}" th:text="${u.nombreCompleto}"></option>
-      </select>
-    </div>
+  <div>
+    <label>Título</label><br>
+    <input type="text" th:field="*{titulo}" required />
+    <div style="color:red" th:errors="*{titulo}"></div>
+  </div>
 
-    <div class="col-12">
-      <label class="form-label">Contenido</label>
-      <textarea class="form-control" th:field="*{contenido}" rows="4"></textarea>
-      <small class="text-danger" th:errors="*{contenido}"></small>
-    </div>
+  <div>
+    <label>Usuario</label><br>
+    <select name="usuarioId" required>
+      <option th:each="u : ${usuarios}"
+              th:value="${u.id}"
+              th:selected="${usuarioId} == u.id"
+              th:text="${u.fullName}">
+      </option>
+    </select>
+  </div>
 
-    <div class="col-12">
-      <button class="btn btn-success" type="submit">Guardar</button>
-      <a th:href="@{/messages}" class="btn btn-secondary">Cancelar</a>
-    </div>
-  </form>
-</th:block>
+  <div>
+    <label>Contenido</label><br>
+    <textarea th:field="*{contenido}" rows="4" required></textarea>
+    <div style="color:red" th:errors="*{contenido}"></div>
+  </div>
+
+  <br>
+  <button type="submit">Guardar</button>
+  <a th:href="@{/messages}">Cancelar</a>
+</form>
+
+</body>
+</html>
+
