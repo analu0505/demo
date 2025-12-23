@@ -7,6 +7,6 @@ import java.util.List;
 
 public interface VaultItemRepository extends JpaRepository<VaultItem, Long> {
 
+    // ✅ para listar la bóveda de un usuario
     List<VaultItem> findAllByOwnerId(Long ownerId);
 }
-

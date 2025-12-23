@@ -3,48 +3,46 @@ package com.proyecto.demo.service;
 import com.proyecto.demo.model.User;
 import com.proyecto.demo.repository.UserRepository;
 import org.springframework.stereotype.Service;
-import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
-import java.util.Optional;
 
 @Service
-@Transactional
 public class UserService {
 
-    private final UserRepository userRepository;
+    private final UserRepository repo;
 
-    // Inyección por constructor
-    public UserService(UserRepository userRepository) {
-        this.userRepository = userRepository;
+    public UserService(UserRepository repo) {
+        this.repo = repo;
     }
 
-    // ====== CRUD ======
     public List<User> findAll() {
-        return userRepository.findAll();
+        return repo.findAll();
     }
 
-    public Optional<User> findById(Long id) {
-        return userRepository.findById(id);
+    public User findById(Long id) {
+        return repo.findById(id).orElse(null);
     }
 
-    public User save(User user) {
-        return userRepository.save(user);
+    public User findByEmail(String email) {
+        return repo.findByEmail(email).orElse(null);
+    }
+
+    // ✅ para validación al crear usuario
+    public boolean emailExists(String email) {
+        return repo.existsByEmail(email);
+    }
+
+    // ✅ para validación al editar usuario (ignora el mismo id)
+    public boolean emailExistsForOtherUser(String email, Long currentUserId) {
+        User u = repo.findByEmail(email).orElse(null);
+        return u != null && !u.getId().equals(currentUserId);
+    }
+
+    public User save(User u) {
+        return repo.save(u);
     }
 
     public void deleteById(Long id) {
-        userRepository.deleteById(id);
-    }
-
-    // Utilidad para validar duplicados por email (crear)
-    public boolean emailExists(String email) {
-        return userRepository.existsByEmail(email);
-    }
-
-    // Utilidad para validar duplicados por email (editar)
-    public boolean emailExistsForOtherUser(String email, Long currentUserId) {
-        return userRepository.findByEmail(email)
-                .map(u -> !u.getId().equals(currentUserId))
-                .orElse(false);
+        repo.deleteById(id);
     }
 }

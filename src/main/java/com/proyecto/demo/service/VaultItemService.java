@@ -1,9 +1,11 @@
 package com.proyecto.demo.service;
 
+import com.proyecto.demo.model.Role;
 import com.proyecto.demo.model.User;
 import com.proyecto.demo.model.VaultItem;
 import com.proyecto.demo.repository.UserRepository;
 import com.proyecto.demo.repository.VaultItemRepository;
+import org.springframework.security.core.Authentication;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -28,110 +30,109 @@ public class VaultItemService {
         this.auditLogService = auditLogService;
     }
 
-    public List<VaultItem> listarPorUsuario(Long userId) {
-        return vaultRepo.findAllByOwnerId(userId);
+    // ✅ Obtener el usuario autenticado por email
+    public User getUserFromAuth(Authentication auth) {
+        String email = auth.getName();
+        return userRepo.findByEmail(email)
+                .orElseThrow(() -> new IllegalArgumentException("Usuario no encontrado: " + email));
     }
 
+    // ✅ ADMIN puede listar bóveda de cualquiera (controller decide)
+    public List<VaultItem> listarPorOwner(Long ownerId) {
+        return vaultRepo.findAllByOwnerId(ownerId);
+    }
+
+    // ✅ Obtener item por id
     public VaultItem obtener(Long id) {
-        return vaultRepo.findById(id).orElse(null);
+        return vaultRepo.findById(id)
+                .orElseThrow(() -> new IllegalArgumentException("VaultItem no encontrado: " + id));
     }
 
-    public VaultItem crear(Long userId, VaultItem item) {
-        User owner = userRepo.findById(userId)
-                .orElseThrow(() -> new IllegalArgumentException("Usuario no encontrado"));
+    /**
+     * ✅ Crear VaultItem:
+     * - USER solo puede crear para sí mismo
+     * - ADMIN puede crear para sí o para otro (según ownerId recibido)
+     * - cifra contenidoPlano -> contentEnc, nonce, kdfSalt
+     */
+    public VaultItem crear(Long ownerId, VaultItem item, Authentication auth) {
 
-        EncryptionService.EncryptionResult enc =
-                encryptionService.encrypt(item.getContenidoPlano());
+        User requester = getUserFromAuth(auth);
+        boolean isAdmin = requester.getRole() == Role.ADMIN;
+
+        // USER solo en su propia bóveda
+        if (!isAdmin && !requester.getId().equals(ownerId)) {
+            throw new IllegalArgumentException("No tienes permiso para crear items para otro usuario.");
+        }
+
+        User owner = userRepo.findById(ownerId)
+                .orElseThrow(() -> new IllegalArgumentException("Owner no encontrado: " + ownerId));
+
+        String plain = item.getContenidoPlano();
+        if (plain == null || plain.isBlank()) {
+            throw new IllegalArgumentException("El contenido no puede estar vacío.");
+        }
+
+        // Cifrar
+        EncryptionService.EncryptionResult res = encryptionService.encrypt(plain);
 
         item.setOwner(owner);
-        item.setContentEnc(enc.getContentEnc());
-        item.setNonce(enc.getNonce());
-        item.setKdfSalt(enc.getKdfSalt());
-        item.setContenidoPlano(null); // no guardar texto plano
+        item.setContentEnc(res.getContentEnc());
+        item.setNonce(res.getNonce());
+        item.setKdfSalt(res.getKdfSalt());
+
+        // limpiar transient
+        item.setContenidoPlano(null);
 
         VaultItem saved = vaultRepo.save(item);
 
-        // Auditoría: creación
-        auditLogService.log(
-                userId,
-                "VAULT_CREATE",
-                "Creado item id=" + saved.getId() + " por userId=" + userId
-        );
+        auditLogService.registrar(requester.getId(), "VAULT_CREATE",
+                "Creó VaultItem id=" + saved.getId() + " para ownerId=" + ownerId);
 
         return saved;
     }
 
-    public VaultItem editar(Long userId, Long itemId, VaultItem item) {
-        VaultItem db = vaultRepo.findById(itemId)
-                .orElseThrow(() -> new IllegalArgumentException("Item no encontrado"));
+    /**
+     * ✅ Descifrar SOLO si:
+     * - el que pide es dueño
+     * - y NO es ADMIN (según tu requisito: admin NO ve descifrado)
+     */
+    public String descifrarContenido(VaultItem item, Long requesterUserId) {
+        User requester = userRepo.findById(requesterUserId)
+                .orElseThrow(() -> new IllegalArgumentException("Usuario no encontrado"));
 
-        if (!db.getOwner().getId().equals(userId)) {
-            throw new IllegalStateException("No tiene permiso para editar este item");
+        boolean isAdmin = requester.getRole() == Role.ADMIN;
+        boolean isOwner = item.getOwner().getId().equals(requesterUserId);
+
+        if (isAdmin || !isOwner) {
+            return null; // no permitido
         }
 
-        db.setTitulo(item.getTitulo());
+        auditLogService.registrar(requesterUserId, "VAULT_DECRYPT",
+                "Descifró VaultItem id=" + item.getId());
 
-        if (item.getContenidoPlano() != null && !item.getContenidoPlano().isBlank()) {
-            EncryptionService.EncryptionResult enc =
-                    encryptionService.encrypt(item.getContenidoPlano());
-            db.setContentEnc(enc.getContentEnc());
-            db.setNonce(enc.getNonce());
-            db.setKdfSalt(enc.getKdfSalt());
-            db.setContenidoPlano(null);
-        }
-
-        VaultItem saved = vaultRepo.save(db);
-
-        // Auditoría: edición
-        auditLogService.log(
-                userId,
-                "VAULT_UPDATE",
-                "Editado item id=" + saved.getId() + " por userId=" + userId
-        );
-
-        return saved;
+        return encryptionService.decrypt(item.getContentEnc(), item.getNonce(), item.getKdfSalt());
     }
 
-    public void eliminar(Long userId, Long itemId) {
-        VaultItem db = vaultRepo.findById(itemId)
-                .orElseThrow(() -> new IllegalArgumentException("Item no encontrado"));
+    /**
+     * ✅ Eliminar:
+     * - USER solo elimina lo suyo
+     * - ADMIN puede eliminar cualquiera (si lo ocupás)
+     */
+    public void eliminar(Long id, Authentication auth) {
+        User requester = getUserFromAuth(auth);
+        VaultItem item = obtener(id);
 
-        if (!db.getOwner().getId().equals(userId)) {
-            throw new IllegalStateException("No tiene permiso para eliminar este item");
+        boolean isAdmin = requester.getRole() == Role.ADMIN;
+        boolean isOwner = item.getOwner().getId().equals(requester.getId());
+
+        if (!isAdmin && !isOwner) {
+            throw new IllegalArgumentException("No tienes permiso para eliminar este VaultItem.");
         }
 
-        vaultRepo.delete(db);
+        vaultRepo.deleteById(id);
 
-        // Auditoría: eliminación
-        auditLogService.log(
-                userId,
-                "VAULT_DELETE",
-                "Eliminado item id=" + itemId + " por userId=" + userId
-        );
-    }
-
-    public String descifrarContenido(Long userId, Long itemId) {
-        VaultItem db = vaultRepo.findById(itemId)
-                .orElseThrow(() -> new IllegalArgumentException("Item no encontrado"));
-
-        if (!db.getOwner().getId().equals(userId)) {
-            throw new IllegalStateException("No tiene permiso para ver este contenido");
-        }
-
-        String contenido = encryptionService.decrypt(
-                db.getContentEnc(),
-                db.getNonce(),
-                db.getKdfSalt()
-        );
-
-        // Auditoría: descifrado
-        auditLogService.log(
-                userId,
-                "VAULT_DECRYPT",
-                "Descifrado item id=" + itemId + " por userId=" + userId
-        );
-
-        return contenido;
+        auditLogService.registrar(requester.getId(), "VAULT_DELETE",
+                "Eliminó VaultItem id=" + id + " (ownerId=" + item.getOwner().getId() + ")");
     }
 }
 

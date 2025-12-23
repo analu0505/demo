@@ -64,8 +64,13 @@ public class UserPageController {
     // FORM EDITAR
     @GetMapping("/users/{id}/edit")
     public String editForm(@PathVariable Long id, Model model) {
-        User u = userService.findById(id)
-                .orElseThrow(() -> new IllegalArgumentException("Usuario no encontrado: " + id));
+
+        // ✅ findById devuelve User, no Optional
+        User u = userService.findById(id);
+        if (u == null) {
+            throw new IllegalArgumentException("Usuario no encontrado: " + id);
+        }
+
         // No mostrar el hash en el form
         u.setPassword("");
         model.addAttribute("user", u);
@@ -79,8 +84,11 @@ public class UserPageController {
                          @ModelAttribute User user,
                          Model model) {
 
-        User existente = userService.findById(id)
-                .orElseThrow(() -> new IllegalArgumentException("Usuario no encontrado: " + id));
+        // ✅ findById devuelve User, no Optional
+        User existente = userService.findById(id);
+        if (existente == null) {
+            throw new IllegalArgumentException("Usuario no encontrado: " + id);
+        }
 
         // Validar email duplicado contra otros usuarios
         if (userService.emailExistsForOtherUser(user.getEmail(), id)) {
@@ -113,3 +121,4 @@ public class UserPageController {
         return "redirect:/users";
     }
 }
+

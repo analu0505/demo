@@ -3,49 +3,69 @@
 <head>
   <meta charset="UTF-8">
   <title>Mensajes</title>
+  <link rel="stylesheet" th:href="@{/css/style.css}">
 </head>
 <body>
 
 <h1>Mensajes</h1>
 
-<p>
-  <a th:href="@{/messages/new}">➕ Nuevo mensaje</a>
-</p>
+<!-- ✅ MENÚ / NAVEGACIÓN (lo que “faltaba”) -->
+<nav>
+  <ul>
+    <li><a href="/messages">Ir a mensajes</a></li>
+    <li><a href="/vault">Ir a mi bóveda</a></li>
+    <li><a href="/users">Gestión de usuarios (solo ADMIN)</a></li>
+    <li><a href="/audit">Auditoría</a></li>
+    <form th:action="@{/logout}" method="post" style="display:inline;">
+    <input type="hidden" th:name="${_csrf.parameterName}" th:value="${_csrf.token}"/>
+    <button type="submit">Cerrar sesión</button>
+</form>
+
+  </ul>
+</nav>
+
+<hr>
+
+<a href="/messages/new">➕ Nuevo mensaje</a>
+<br><br>
 
 <table border="1" cellpadding="6">
   <thead>
-    <tr>
-      <th>ID</th>
-      <th>Título</th>
-      <th>Usuario</th>
-      <th>Creado</th>
-      <th>Acciones</th>
-    </tr>
+  <tr>
+    <th>ID</th>
+    <th>Título</th>
+    <th>Usuario</th>
+    <th>Creado</th>
+    <th>Contenido</th>
+    <th>Acciones</th>
+  </tr>
   </thead>
+
   <tbody>
-    <tr th:each="m : ${mensajes}">
-      <td th:text="${m.id}">1</td>
-      <td th:text="${m.titulo}">Título</td>
-      <td th:text="${m.usuario != null ? m.usuario.fullName : ''}">Usuario</td>
-      <td th:text="${#temporals.format(m.fechaCreacion, 'yyyy-MM-dd HH:mm')}">2025-01-01</td>
-      <td>
-        <a th:href="@{|/messages/${m.id}/edit|}">Editar</a>
-        <form th:action="@{|/messages/${m.id}/delete|}" method="post" style="display:inline">
-          <button type="submit" onclick="return confirm('¿Eliminar mensaje?')">Eliminar</button>
-        </form>
-      </td>
-    </tr>
+  <!-- ✅ IMPORTANTÍSIMO: esto evita el 500 -->
+  <tr th:each="m : ${mensajes}">
+    <td th:text="${m.id}">1</td>
+    <td th:text="${m.titulo}">Título</td>
+    <td th:text="${m.usuario != null ? m.usuario.email : ''}">usuario</td>
+    <td th:text="${#temporals.format(m.fechaCreacion, 'yyyy-MM-dd HH:mm')}">fecha</td>
+
+    <!-- ✅ no revienta si viene null -->
+    <td th:text="${m.contenido != null ? #strings.abbreviate(m.contenido, 60) : ''}">contenido</td>
+
+    <td>
+      <a th:href="@{/messages/{id}/edit(id=${m.id})}">Editar</a>
+
+      <form th:action="@{/messages/{id}/delete(id=${m.id})}"
+            method="post"
+            style="display:inline;">
+        <button type="submit" onclick="return confirm('¿Eliminar mensaje?');">
+          Eliminar
+        </button>
+      </form>
+    </td>
+  </tr>
   </tbody>
 </table>
 
-<p>
-  <a href="/users">Volver a usuarios</a>
-  
-</p>
-<p>
-  <a href="/vault">Ir a mi bóveda</a>
-</p>
-
 </body>
 </html>
-

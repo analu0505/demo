@@ -1,39 +1,68 @@
 <!DOCTYPE html>
-<html lang="es" xmlns:th="http://www.thymeleaf.org">
+<html xmlns:th="http://www.thymeleaf.org">
 <head>
   <meta charset="UTF-8">
-  <title>Mis Vault Items</title>
+  <title>Bóveda</title>
+  <link rel="stylesheet" th:href="@{/css/style.css}">
 </head>
 <body>
 
-<h1>Mis Vault Items</h1>
+<h1>Bóveda</h1>
 
-<p>
-  <a th:href="@{/vault/new}">➕ Nuevo item</a> |
-  <a th:href="@{/messages}">Mensajes</a> |
-  <a th:href="@{/logout}">Cerrar sesión</a>
-</p>
+<ul>
+  <li><a href="/messages">Ir a mensajes</a></li>
+  <li><a href="/vault">Ir a mi bóveda</a></li>
+  <li><a href="/users">Gestión de usuarios (solo ADMIN)</a></li>
+  <li><a href="/audit">Auditoría</a></li>
+  <li>
+    <form th:action="@{/logout}" method="post" style="display:inline;">
+      <input type="hidden" th:name="${_csrf.parameterName}" th:value="${_csrf.token}"/>
+      <button type="submit">Cerrar sesión</button>
+    </form>
+  </li>
+</ul>
+
+<hr>
+
+<!-- Selector solo para ADMIN -->
+<div th:if="${usuarios != null}">
+  <h3>Ver bóveda de otro usuario (ADMIN)</h3>
+  <form method="get" action="/vault">
+    <select name="ownerId">
+      <option th:each="u : ${usuarios}"
+              th:value="${u.id}"
+              th:selected="${u.id == ownerSeleccionado}"
+              th:text="${u.email}">
+      </option>
+    </select>
+    <button type="submit">Ver</button>
+  </form>
+  <p th:if="${viendoDeOtro}"><b>Estás viendo la bóveda de otro usuario.</b></p>
+</div>
+
+<hr>
+
+<!-- ✅ Solo UNA vez -->
+<div style="margin: 10px 0;">
+  <a th:href="@{/vault/new(ownerId=${ownerSeleccionado})}">
+    ➕ Agregar Vault Item
+  </a>
+</div>
 
 <table border="1" cellpadding="6">
   <thead>
-    <tr>
-      <th>ID</th>
-      <th>Título</th>
-      <th>Acciones</th>
-    </tr>
+  <tr>
+    <th>ID</th>
+    <th>Título</th>
+    <th>Contenido (guardado)</th>
+  </tr>
   </thead>
   <tbody>
-    <tr th:each="i : ${items}">
-      <td th:text="${i.id}">1</td>
-      <td th:text="${i.titulo}">Título</td>
-      <td>
-        <a th:href="@{|/vault/${i.id}/view|}">Ver</a> |
-        <a th:href="@{|/vault/${i.id}/edit|}">Editar</a>
-        <form th:action="@{|/vault/${i.id}/delete|}" method="post" style="display:inline">
-          <button type="submit" onclick="return confirm('¿Eliminar item?')">Eliminar</button>
-        </form>
-      </td>
-    </tr>
+  <tr th:each="v : ${items}">
+    <td th:text="${v.id}"></td>
+    <td th:text="${v.titulo}"></td>
+    <td th:text="${v.contentEnc}"></td>
+  </tr>
   </tbody>
 </table>
 

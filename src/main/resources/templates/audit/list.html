@@ -1,0 +1,58 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+  <meta charset="UTF-8" />
+  <title>Auditoría</title>
+
+  <link rel="stylesheet" th:href="@{/css/style.css}">
+
+</head>
+<body>
+
+<h2>Auditoría</h2>
+<div style="margin: 15px 0;">
+  <a href="/reports/csv">📄 Descargar reporte CSV del sistema</a>
+</div>
+
+
+
+<div style="margin-bottom:12px;">
+  <a href="/messages">Mensajes</a> |
+  <a href="/vault">Bóveda</a> |
+  <a href="/users">Usuarios</a> |
+  <form th:action="@{/logout}" method="post" style="display:inline;">
+    <input type="hidden" th:name="${_csrf.parameterName}" th:value="${_csrf.token}"/>
+    <button type="submit">Cerrar sesión</button>
+  </form>
+</div>
+
+<table border="1" cellpadding="6" cellspacing="0" style="width:100%;">
+  <thead>
+    <tr>
+      <th>ID</th>
+      <th>Fecha</th>
+      <th>Usuario</th>
+      <th>Acción</th>
+      <th>Detalles</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr th:if="${logs == null || #lists.isEmpty(logs)}">
+      <td colspan="5">No hay registros.</td>
+    </tr>
+
+    <tr th:each="l : ${logs}">
+      <td th:text="${l.id}"></td>
+      <td th:text="${l.timestamp}"></td>
+
+      <!-- Usa el map userEmails del controller -->
+      <td th:text="${l.userId != null ? userEmails[l.userId] : 'N/A'}"></td>
+
+      <td th:text="${l.action}"></td>
+      <td th:text="${l.details}"></td>
+    </tr>
+  </tbody>
+</table>
+
+</body>
+</html>
